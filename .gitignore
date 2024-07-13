@@ -4,3 +4,11 @@ __pycache__/
 config/
 scripts/
 repo_context/
+uploads/
+commands.txt
+output.txt*.pyc
+__pycache__/
+venv/
+*.db
+instance/
+.DS_Store

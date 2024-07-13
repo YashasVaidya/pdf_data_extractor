@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Extracted Data</title>
+</head>
+<body>
+    <h1>Validate Extracted Data</h1>
+    <form id="validateForm">
+        {% for i in range(1, 6) %}
+        <div>
+            <label for="patient_{{ i }}">Patient {{ i }}:</label>
+            <input type="text" id="patient_{{ i }}" name="patient_{{ i }}" value="{{ data['patient_' ~ i] }}">
+            <label for="amount_{{ i }}">Amount {{ i }}:</label>
+            <input type="text" id="amount_{{ i }}" name="amount_{{ i }}" value="{{ data['amount_' ~ i] }}">
+        </div>
+        {% endfor %}
+        <button type="submit">Validate and Save</button>
+    </form>
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="{{ url_for('static', filename='js/validate.js') }}"></script>
+</body>
+</html>
