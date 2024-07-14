@@ -1,9 +1,8 @@
 import os
-from flask import request, jsonify, render_template, g
+from flask import request, jsonify, render_template, g, current_app
 from werkzeug.utils import secure_filename
 from app import app
-from app.utils.pdf_extractor import extract_text_from_pdf
-from app.utils.data_processor import process_data
+from app.utils.pdf_extractor import process_pdf as pdf_processor
 import sqlite3
 
 UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
@@ -26,9 +25,8 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def process_pdf(file_path):
-    try:
-        extracted_text = extract_text_from_pdf(file_path)
-        final_data = process_data(extracted_text)
+    with current_app.app_context():
+        data = pdf_processor(file_path)
         
         # Save to database
         db = get_db()
@@ -40,22 +38,18 @@ def process_pdf(file_path):
                  patient_4, amount_4, patient_5, amount_5, validated)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                final_data.get('patient_1'), final_data.get('amount_1'),
-                final_data.get('patient_2'), final_data.get('amount_2'),
-                final_data.get('patient_3'), final_data.get('amount_3'),
-                final_data.get('patient_4'), final_data.get('amount_4'),
-                final_data.get('patient_5'), final_data.get('amount_5'),
+                data.get('patient_1'), data.get('amount_1'),
+                data.get('patient_2'), data.get('amount_2'),
+                data.get('patient_3'), data.get('amount_3'),
+                data.get('patient_4'), data.get('amount_4'),
+                data.get('patient_5'), data.get('amount_5'),
                 False
             ))
             db.commit()
+            return data, cursor.lastrowid
         except sqlite3.Error as e:
-            app.logger.error(f"Database error: {str(e)}")
+            current_app.logger.error(f"Database error: {str(e)}")
             return None, None
-        
-        return final_data, cursor.lastrowid
-    except Exception as e:
-        app.logger.error(f"Error processing PDF: {str(e)}")
-        return None, None
 
 @app.route('/')
 def index():
@@ -81,7 +75,7 @@ def upload_file():
         if final_data and record_id:
             return jsonify({'success': True, 'record_id': record_id})
         else:
-            app.logger.error(f"Failed to process PDF. final_data: {final_data}, record_id: {record_id}")
+            current_app.logger.error(f"Failed to process PDF. final_data: {final_data}, record_id: {record_id}")
             return jsonify({'error': 'Failed to process PDF'})
     return jsonify({'error': 'File type not allowed'})
 
