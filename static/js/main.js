@@ -32,7 +32,6 @@ function displayValidationForm(data) {
             </div>
         `;
     }
-    document.getElementById('validationForm').style.display = 'block';
 }
 
 document.getElementById('submitValidation').addEventListener('click', function() {
@@ -54,4 +53,13 @@ document.getElementById('submitValidation').addEventListener('click', function()
     .catch(function (error) {
         document.getElementById('finalOutput').innerHTML = 'Error: ' + error.message;
     });
+});
+
+// Initialize the validation form with empty fields
+displayValidationForm({
+    'patient_1': '', 'amount_1': '',
+    'patient_2': '', 'amount_2': '',
+    'patient_3': '', 'amount_3': '',
+    'patient_4': '', 'amount_4': '',
+    'patient_5': '', 'amount_5': ''
 });
