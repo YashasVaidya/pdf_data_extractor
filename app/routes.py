@@ -6,11 +6,9 @@ from app.utils.pdf_extractor import extract_text_from_pdf
 from app.utils.data_processor import process_data
 import sqlite3
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf'}
-DATABASE = 'pdf_data.db'
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
+ALLOWED_EXTENSIONS = app.config['ALLOWED_EXTENSIONS']
+DATABASE = app.config['DATABASE']
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -24,13 +22,6 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-def init_db():
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -42,20 +33,24 @@ def process_pdf(file_path):
         # Save to database
         db = get_db()
         cursor = db.cursor()
-        cursor.execute('''
-            INSERT INTO extracted_data 
-            (patient_1, amount_1, patient_2, amount_2, patient_3, amount_3, 
-             patient_4, amount_4, patient_5, amount_5, validated)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            final_data.get('patient_1'), final_data.get('amount_1'),
-            final_data.get('patient_2'), final_data.get('amount_2'),
-            final_data.get('patient_3'), final_data.get('amount_3'),
-            final_data.get('patient_4'), final_data.get('amount_4'),
-            final_data.get('patient_5'), final_data.get('amount_5'),
-            False
-        ))
-        db.commit()
+        try:
+            cursor.execute('''
+                INSERT INTO extracted_data 
+                (patient_1, amount_1, patient_2, amount_2, patient_3, amount_3, 
+                 patient_4, amount_4, patient_5, amount_5, validated)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                final_data.get('patient_1'), final_data.get('amount_1'),
+                final_data.get('patient_2'), final_data.get('amount_2'),
+                final_data.get('patient_3'), final_data.get('amount_3'),
+                final_data.get('patient_4'), final_data.get('amount_4'),
+                final_data.get('patient_5'), final_data.get('amount_5'),
+                False
+            ))
+            db.commit()
+        except sqlite3.Error as e:
+            app.logger.error(f"Database error: {str(e)}")
+            return None, None
         
         return final_data, cursor.lastrowid
     except Exception as e:
@@ -75,8 +70,8 @@ def upload_file():
         return jsonify({'error': 'No selected file'})
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Ensure the upload folder exists
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the upload folder exists
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
         
         final_data, record_id = process_pdf(file_path)
@@ -86,9 +81,9 @@ def upload_file():
         if final_data and record_id:
             return jsonify({'success': True, 'record_id': record_id})
         else:
+            app.logger.error(f"Failed to process PDF. final_data: {final_data}, record_id: {record_id}")
             return jsonify({'error': 'Failed to process PDF'})
     return jsonify({'error': 'File type not allowed'})
-
 
 @app.route('/validate/<int:record_id>', methods=['GET', 'POST'])
 def validate_data(record_id):
@@ -119,9 +114,3 @@ def validate_data(record_id):
     if data:
         return render_template('validate.html', data=dict(zip([column[0] for column in cursor.description], data)))
     return jsonify({'error': 'Record not found'})
-
-if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    if not os.path.exists(DATABASE):
-        init_db()
-    app.run(debug=True)
