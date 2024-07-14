@@ -12,6 +12,14 @@
         <button type="submit">Upload and Process</button>
     </form>
     <div id="result"></div>
+    <div id="validationForm" style="display:none;">
+        <h2>Validate Extracted Data</h2>
+        <form id="dataValidationForm">
+            <!-- This will be populated dynamically -->
+        </form>
+        <button id="submitValidation">Submit Validated Data</button>
+    </div>
+    <div id="finalOutput"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
