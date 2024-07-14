@@ -63,11 +63,3 @@ If you want to run the application locally for development:
 ## Deployment
 
 This application is deployed on Render. See the [documentation](docs/code_explanation.md) for more details on the deployment process.
-
-## License
-
-[MIT License](https://opensource.org/licenses/MIT)
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
