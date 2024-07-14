@@ -19,6 +19,3 @@ def extract_data_from_pdf(file_stream):
         data[f'amount_{number}'] = amount.replace(',', '')
     
     return data
-
-def process_pdf(file_stream):
-    return extract_data_from_pdf(file_stream)
