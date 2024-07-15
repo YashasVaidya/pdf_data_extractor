@@ -55,22 +55,12 @@ The application is currently deployed and accessible at:
 ## How It Works
 
 1. PDF Upload: The user uploads a PDF file through the web interface at [https://pdf-data-extractor.onrender.com/](https://pdf-data-extractor.onrender.com/).
-2. AI Extraction: The `extract_data_from_pdf` function in `pdf_extractor.py` uses AI techniques to identify and extract the 10 required datapoints (5 patient-amount pairs) from the PDF.
+2. Extraction: The `extract_data_from_pdf` function in `pdf_extractor.py` uses AI techniques to identify and extract the 10 required datapoints (5 patient-amount pairs) from the PDF.
 3. Data Display: The extracted data is sent to the client-side and displayed in an editable form alongside a PDF viewer.
 4. Human Validation: The user can review the extracted data, make corrections if needed, and select the correct location on the PDF for any misextracted data.
 5. Data Submission: The user submits the validated data back to the server.
 6. JSON Output: The server processes the validated data and returns a JSON output of the final, corrected datapoints.
 
-## AI Extraction Process
-
-The AI extraction process uses a combination of techniques to handle various PDF formats:
-
-1. Optical Character Recognition (OCR) for scanned PDFs
-2. Natural Language Processing (NLP) to identify relevant information
-3. Pattern matching to locate patient names and amounts
-4. Machine Learning models trained on various PDF layouts to improve accuracy
-
-The AI model is continuously improved based on the corrections made during the human validation step.
 
 ## Deployment
 
